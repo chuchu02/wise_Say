@@ -116,6 +116,64 @@ app.delete("/wiseSayings/:id", async (req, res) => {
 });
 // 삭제 끝
 
+//  수정 시작
+app.patch("/wiseSayings/:id", async (req, res) => {
+  // const id = req.params.id;
+  const { id } = req.params;
+
+  const [rows] = await pool.query(
+    `
+  SELECT * 
+  FROM wiseSaying 
+  WHERE id =?
+  `,
+    [id]
+  );
+
+  if (rows.length == 0) {
+    res.status(404).json({
+      msg: "not found",
+    });
+    return;
+  }
+
+  const { reg_date, content, author } = req.body;
+
+  if (!reg_date) {
+    res.status(400).json({
+      msg: "reg_date required",
+    });
+    return;
+  }
+  if (!content) {
+    res.status(400).json({
+      msg: "content required",
+    });
+    return;
+  }
+  if (!author) {
+    res.status(400).json({
+      msg: "author required",
+    });
+    return;
+  }
+  const [rs] = await pool.query(
+    `
+  UPDATE wiseSaying 
+  SET reg_date = ?,
+  content = ?, 
+  author = ?,  
+  WHERE id =?
+  `,
+    [reg_date, content, author, id]
+  );
+
+  res.json({
+    msg: `${id}번 할일이 수정되었습니다.`,
+  });
+});
+// 수정 끝
+
 //단건조회 시작
 app.get("/wiseSayings/:id", async (req, res) => {
   //const id = req.params.id;
