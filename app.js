@@ -26,14 +26,14 @@ app.use(cors(corsOptions));
 const port = 3000;
 
 // 생성 시작
-app.post("/todos/:id", async (req, res) => {
+app.post("/wiseSayings/:id", async (req, res) => {
   // const id = req.params.id;
   const { id } = req.params;
 
   const [rows] = await pool.query(
     `
   SELECT * 
-  FROM todo 
+  FROM wiseSaying
   WHERE id = ?
   `,
     [id]
@@ -46,16 +46,10 @@ app.post("/todos/:id", async (req, res) => {
     return;
   }
 
-  const { reg_date, is_completed, perform_date, content } = req.body;
+  const { reg_date, content, author } = req.body;
   if (!reg_date) {
     res.status(400).json({
       msg: "reg_date required",
-    });
-    return;
-  }
-  if (!perform_date) {
-    res.status(400).json({
-      msg: "perfom_date required",
     });
     return;
   }
@@ -65,16 +59,20 @@ app.post("/todos/:id", async (req, res) => {
     });
     return;
   }
-
+  if (!author) {
+    res.status(400).json({
+      msg: "author required",
+    });
+    return;
+  }
   const [rs] = await pool.query(
     `
-  INSERT INTO todo
+  INSERT INTO wiseSaying
   SET reg_date = ?,
-  perform_date = ?,
-  is_completed = ?,
-  content = ?
+  content = ?,
+  author = ?
   `,
-    [reg_date, perform_date, is_completed, content]
+    [reg_date, content, author]
   );
 
   res.status(201).json({
@@ -82,6 +80,41 @@ app.post("/todos/:id", async (req, res) => {
   });
 });
 // 생성 끝
+
+// 삭제 시작
+app.delete("/wiseSayings/:id", async (req, res) => {
+  // const id = req.params.id;
+  const { id } = req.params;
+
+  const [rows] = await pool.query(
+    `
+  SELECT * 
+  FROM wiseSaying 
+  WHERE id =?
+  `,
+    [id]
+  );
+
+  if (rows.length == 0) {
+    res.status(404).json({
+      msg: "not found",
+    });
+    return;
+  }
+
+  const [rs] = await pool.query(
+    `
+  DELETE FROM wiseSaying
+  WHERE id = ?
+  `,
+    [id]
+  );
+
+  res.json({
+    msg: `${id}번 할일이 삭제되었습니다.`,
+  });
+});
+// 삭제 끝
 
 //단건조회 시작
 app.get("/wiseSayings/:id", async (req, res) => {
